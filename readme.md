@@ -111,12 +111,6 @@ end
 
 ```
 
-## Visual Example
-
-This image demonstrates some of the pairwise intersection tests between shapes. This [thread](https://x.com/eigenbom/status/1703550676457189483?s=20) also demonstrates some of the library functions.
-
-![Image](intersections.png)
-
 ## License
 
 [MIT](license.txt)
