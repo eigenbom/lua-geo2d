@@ -1,9 +1,10 @@
 --[[
 2D Computational Geometry  
 
-This library provides a set of functions for 2D computational geometry.  
-
-Major sections are ported from Arash Partow's Wykobi Computational Geometry Library.  
+This library provides a set of functions for 2D computational geometry  
+https://github.com/eigenbom/lua-geo2d  
+Benjamin Porter  
+Licensed under the MIT license  
 
 Shapes:  
 * AABB - Axis aligned bounding box defined by min and max point  
@@ -29,7 +30,6 @@ Debug Mode:
 * The file is also available in debug mode (lua51_debug\geo2d.lua)  
   In debug mode the library performs some checks on parameters (e.g., that an AABB has min <= max or that a polygon is non-intersecting)  
 * The constant M.DEBUG will be true if the library is built in debug mode  
-
 
 Functions By Category:  
 * Collinear, perpendicular, parallel, tangent  
@@ -225,12 +225,12 @@ Functions By Category:
 	* closest_point_on_triangle_from_point  
 
 * AABB from shapes  
-	* aabb_circle  
-	* aabb_pcurve  
-	* aabb_points  
-	* aabb_quad  
-	* aabb_segment  
-	* aabb_triangle  
+	* aabb_from_circle  
+	* aabb_from_pcurve  
+	* aabb_from_points  
+	* aabb_from_quad  
+	* aabb_from_segment  
+	* aabb_from_triangle  
 
 * AABB operations  
 	* aabb_intersection  
@@ -422,14 +422,13 @@ local function _dump(t, tab)
 	return "{\n" .. indent .. table.concat(out, "\n" .. indent) .. "\n" .. last_indent .. "}"
 end
 
-
 -----------------------------------------------------------
 -- Algorithmic Constants
 -----------------------------------------------------------
 
 -- Determines the precision of floating point comparisons
 -- Adjust this to suit the precision of your data
-local PRECISION = 1e-9
+local PRECISION = 0.000000001
 
 -----------------------------------------------------------
 -- Dependencies
@@ -437,6 +436,9 @@ local PRECISION = 1e-9
 -- Can redefine these to use other math libraries
 -- (eg LUT-based trig)
 -----------------------------------------------------------
+
+local math = require("math")
+local table = require("table")
 
 local math_abs         = math.abs
 local math_min         = math.min
@@ -968,7 +970,7 @@ end
 ---@param x2 number
 ---@param y2 number
 ---@return number,number,number,number -- min_x, min_y, max_x, max_y
-function M.aabb_segment(x1, y1, x2, y2)
+function M.aabb_from_segment(x1, y1, x2, y2)
 	local min_x, max_x ---@type number, number
 
 	if x1 < x2 then
@@ -991,7 +993,7 @@ end
 ---@param x3 number
 ---@param y3 number
 ---@return number,number,number,number -- min_x, min_y, max_x, max_y
-function M.aabb_triangle(x1, y1, x2, y2, x3, y3)
+function M.aabb_from_triangle(x1, y1, x2, y2, x3, y3)
 	local min_x, min_y, max_x, max_y = x1, y1, x1, y1
 	min_x, max_x, min_y, max_y = math_min(min_x, x2), math_max(max_x, x2), math_min(min_y, y2), math_max(max_y, y2)
 	min_x, max_x, min_y, max_y = math_min(min_x, x3), math_max(max_x, x3), math_min(min_y, y3), math_max(max_y, y3)
@@ -1007,7 +1009,7 @@ end
 ---@param x4 number
 ---@param y4 number
 ---@return number,number,number,number -- min_x, min_y, max_x, max_y
-function M.aabb_quad(x1, y1, x2, y2, x3, y3, x4, y4)
+function M.aabb_from_quad(x1, y1, x2, y2, x3, y3, x4, y4)
 	local min_x, max_x, min_y, max_y = x1, x1, y1, y1
 	min_x, max_x, min_y, max_y = math_min(min_x, x2), math_max(max_x, x2), math_min(min_y, y2), math_max(max_y, y2)
 	min_x, max_x, min_y, max_y = math_min(min_x, x3), math_max(max_x, x3), math_min(min_y, y3), math_max(max_y, y3)
@@ -1019,7 +1021,7 @@ end
 ---@param y number
 ---@param radius number
 ---@return number,number,number,number -- min_x, min_y, max_x, max_y
-function M.aabb_circle(x, y, radius)
+function M.aabb_from_circle(x, y, radius)
 	local min_x = x - radius
 	local min_y = y - radius
 	local max_x = x + radius
@@ -1029,7 +1031,7 @@ end
 
 ---@param point_count integer -- >= 2
 ---@param pcurve fun(t:number):number,number
-function M.aabb_pcurve(point_count, pcurve)
+function M.aabb_from_pcurve(point_count, pcurve)
 	local min_x, min_y = pcurve(0)
 	local max_x, max_y = min_x, min_y
 	for i = 1, point_count - 1 do
@@ -1042,7 +1044,7 @@ end
 
 ---@param points number[] -- (x1, y1, x2, y2, ...)
 ---@return number,number,number,number -- min_x, min_y, max_x, max_y
-function M.aabb_points(points)
+function M.aabb_from_points(points)
 	assert(#points >= 2, "points must have at least 1 point")
 
 	local min_x, min_y = points[1], points[2]
@@ -1424,9 +1426,6 @@ function M.closest_point_in_triangle_from_point(x1, y1, x2, y2, x3, y3, px, py)
 	return px, py
 end
 
-
-
-
 ---Return the closest point on the AABB outline to (px,py)
 ---@param min_x number
 ---@param min_y number
@@ -1509,7 +1508,6 @@ function M.closest_point_on_circle_from_circle(c1_x, c1_y, c1_r, c2_x, c2_y, c2_
 	local px, py = M.closest_point_on_circle_from_point(c2_x, c2_y, c2_r, c1_x, c1_y)
 	return M.closest_point_on_circle_from_point(c1_x, c1_y, c1_r, px, py)
 end
-
 
 ---@param c_x number
 ---@param c_y number
@@ -3466,11 +3464,9 @@ function M.intersect_quad_quad(quad1_x1, quad1_y1, quad1_x2, quad1_y2, quad1_x3,
 	return false
 end
 
-
 -----------------------------------------------------------
 -- Intersection points
 -----------------------------------------------------------
-
 
 ---@param a_min_x number
 ---@param a_min_y number
@@ -3705,7 +3701,6 @@ function M.intersection_point_aabb_line(min_x, min_y, max_x, max_y, x1, y1, x2, 
 
 	return _x1, _y1, _x2, _y2
 end
-
 
 ---Calculate up to two intersection points of two circles
 ---Special cases:
@@ -5361,7 +5356,7 @@ end
 ---@return boolean
 function M.circle_within_aabb(x, y, radius, min_x, min_y, max_x, max_y)
 	_assert(min_x <= max_x and min_y <= max_y, "bad argument (min point (%.2f, %.2f) is larger than max point (%.2f, %.2f)", min_x, max_x, min_y, max_y)
-	local cmin_x, cmin_y, cmax_x, cmax_y = M.aabb_circle(x, y, radius)
+	local cmin_x, cmin_y, cmax_x, cmax_y = M.aabb_from_circle(x, y, radius)
 	return M.aabb_within_aabb(cmin_x, cmin_y, cmax_x, cmax_y, min_x, min_y, max_x, max_y)
 end
 
@@ -6178,7 +6173,6 @@ function M.project_ray_onto_axis(axis_x1, axis_y1, axis_x2, axis_y2, x, y, dir_x
 	return px, py, pdx - px, pdy - py
 end
 
-
 ---@param axis_x1 number
 ---@param axis_y1 number
 ---@param axis_x2 number
@@ -6671,7 +6665,6 @@ function M._intersection_point_polyline(polyline, segment_intersector, ...)
 	end
 	return result
 end
-
 
 ---Helper function to get intersection points in segments of a polygon
 ---@param polygon number[] -- (x1, y1, x2, y2, ...)
@@ -7518,8 +7511,6 @@ end
 local function collinear_vertex(index, polygon)
 	return M._robust_collinear(vertex_triangle(index, polygon))
 end
-
-
 
 ---@param index integer
 ---@param indices integer[]

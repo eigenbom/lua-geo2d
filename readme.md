@@ -1,19 +1,36 @@
 # geo2d.lua
 
-`geo2d.lua` is a Lua library for 2D Computational Geometry. It provides a set of geometric functions and shape operations in 2D space, focusing on various shapes such as AABBs, circles, lines, rays, curves, and polygons. It supports many shape intersection tests, closest point calculations, geometric transformations, polygon triangulation and clipping, random point generation, and many other features. For the full API please see [api.md](api.md).
+`geo2d.lua` is a 2D Computational Geometry library written in pure Lua. It provides a set of geometric functions in 2D space, focusing on common shapes such as AABBs, circles, lines, rays, curves, and polygons. It supports shape intersection tests, closest point calculations, geometric transformations, polygon triangulation and clipping, random point generation, and many other features. For the full API please see [api.md](doc/api.md).
 
-Major sections of this library are ported from Arash Partow's [Wykobi Computational Geometry Library](https://github.com/ArashPartow/wykobi).
+Sections of this library are ported into Lua from Arash Partow's [Wykobi Computational Geometry Library](https://github.com/ArashPartow/wykobi).
 
 Some of the design principles of the library are:
-* Prefer multiple parameters and return values over tables where possible
+* Prefer multiple parameters and return values over tables
 * When tables are used, prefer flat-arrays (e.g., polygons are a table in the form `[x1, y1, ..., xn, yn]`)
 * Provide a *debug* version that performs additional sanity checks
 
+
 ## Installation
 
-Copy the file from [lua51/geo2d.lua](lua51/geo2d.lua) or [lua51_debug/geo2d.lua](lua51_debug/geo2d.lua) into your project.
+Copy the `geo2d.lua` file from one of the distributions in `dist/` (e.g., [lua51](dist/lua51/geo2d.lua)) into your project and then `require` it:
 
-## Example Usage
+```lua
+local geo2d = require "geo2d"
+if geo2d.intersect_aabb_line(...) then
+	...
+end
+```
+
+When using a distribution like [picotron](dist/picotron/geo2d.lua) you can use `include` instead and the functions will be added to a `geo2d` global:
+
+```lua
+include 'geo2d.lua'
+local ax, ay, bx, by = geo2d.clip_segment_aabb(...)
+```
+
+## Examples
+
+Some examples are provided below.
 
 ```lua
 local geo2d = require "geo2d"
@@ -111,6 +128,8 @@ end
 
 ```
 
-## License
+## Visual Example
 
-[MIT](license.txt)
+This image demonstrates some of the shape-shape intersection tests:
+
+![Shape intersection](doc/intersections.png)
